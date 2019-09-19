@@ -1,0 +1,67 @@
+上下文管理器，通常应用在文件的打开关闭和数据库的连接关闭等场景中，可以确保用过的资源得到迅速释放，有效提高程序的安全性。
+上下文管理器通常和with语句一起使用，大大提高程序的简洁度。
+当我们用with语句执行上下文管理器的操作时，一旦有异常抛出，异常类型、值等具体信息都会通过参数传入__exit__函数中。你可以自行定义相关的操作对异常进行处理，而处理完异常后，也别忘加上return True这条语句，否则仍然会抛出异常。
+
+1. 基于类的上下文管理器：
+文件的打开和关闭
+class FileManager:
+    def __init__(self, name, mode):
+        print('calling __init__ method')
+        self.name = name
+        self.mode = mode 
+        self.file = None
+        
+    def __enter__(self):
+        print('calling __enter__ method')
+        self.file = open(self.name, self.mode)
+        return self.file
+
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print('calling __exit__ method')
+        if self.file:
+            self.file.close()
+            
+with FileManager('test.txt', 'w') as f:
+    print('ready to write to file')
+    f.write('hello world')
+    
+## 输出
+calling __init__ method
+calling __enter__ method
+ready to write to file
+calling __exit__ method
+
+数据库的连接和关闭
+class DBConnectionManager: 
+    def __init__(self, hostname, port): 
+        self.hostname = hostname 
+        self.port = port 
+        self.connection = None
+  
+    def __enter__(self): 
+        self.connection = DBClient(self.hostname, self.port) 
+        return self.connection
+  
+    def __exit__(self, exc_type, exc_val, exc_tb): 
+        self.connection.close() 
+  
+with DBConnectionManager('localhost', '8080') as db_client: 
+
+
+2. 基于生成器的上下文管理器：
+from contextlib import contextmanager
+
+@contextmanager
+def file_manager(name, mode):
+    try:
+        f = open(name, mode)
+        yield f
+    finally:
+        f.close()
+        
+with file_manager('test.txt', 'w') as f:
+    f.write('hello world')
+
+基于类的上下文管理器更加复杂，适用于大型的系统开发；
+而基于生成器的上下文管理器更加方便、简洁，适用于中小型程序。

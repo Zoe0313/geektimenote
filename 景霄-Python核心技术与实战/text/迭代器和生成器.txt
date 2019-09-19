@@ -1,0 +1,39 @@
+如何判断一个对象是否可迭代？还有另一个方法：isinstance(obj, iterable)也可以判断
+
+def is_iterable(param):
+    try: 
+        iter(param) 
+        return True
+    except TypeError:
+        return False
+
+params = [
+    1234,
+    '1234',
+    [1, 2, 3, 4],
+    set([1, 2, 3, 4]),
+    {1:1, 2:2, 3:3, 4:4},
+    (1, 2, 3, 4)
+]
+    
+for param in params:
+    print('{} is iterable? {}'.format(param, is_iterable(param)))
+
+########## 输出 ##########
+
+1234 is iterable? False
+1234 is iterable? True
+[1, 2, 3, 4] is iterable? True
+{1, 2, 3, 4} is iterable? True
+{1: 1, 2: 2, 3: 3, 4: 4} is iterable? True
+(1, 2, 3, 4) is iterable? True
+
+容器、可迭代对象、迭代器和生成器
+
+- 容器是可迭代对象，可迭代对象调用 iter() 函数，可以得到一个迭代器。
+  迭代器可以通过 next() 函数来得到下一个元素，从而支持遍历。
+- 生成器是一种特殊的迭代器（注意这个逻辑关系反之不成立）。
+  使用生成器，你可以写出来更加清晰的代码；
+  合理使用生成器，可以降低内存占用、优化程序结构、提高程序速度。
+- 生成器在 Python 2 的版本上，是协程的一种重要实现方式；
+  而 Python 3.5 引入 async await 语法糖后，生成器实现协程的方式就已经落后了。

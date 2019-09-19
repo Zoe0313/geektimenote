@@ -1,0 +1,70 @@
+
+深入理解Python类型模型：
+1. 所有Python的用户自定义类都是type这个类的实例。
+2. 用户自定义类，只不过是type类的__call__运算符重载。
+例如：
+class MyClass:
+  data = 1
+  
+instance = MyClass()
+MyClass, instance
+# 输出
+(__main__.MyClass, <__main__.MyClass instance at 0x7fe4f0b00ab8>)
+instance.data
+# 输出
+1
+
+以上这段代码相当于：
+MyClass = type('MyClass', (), {'data': 1})
+instance = MyClass()
+MyClass, instance
+# 输出
+(__main__.MyClass, <__main__.MyClass at 0x7fe4f0aea5d0>)
+
+instance.data
+# 输出
+1
+
+3. metaclass是type的子类，通过替换type的__call__运算符重载机制，“超越变形”正常的类。
+
+metaclass的超越变形特性有什么用？
+YAML是一个可以方便地序列化/逆序列化结构数据的工具。
+YAMLObject 的一个超越变形能力，就是它的任意子类支持序列化和反序列化（serialization & deserialization）。
+示例如下:
+
+class Monster(yaml.YAMLObject):
+  yaml_tag = u'!Monster'
+  def __init__(self, name, hp, ac, attacks):
+    self.name = name
+    self.hp = hp
+    self.ac = ac
+    self.attacks = attacks
+  def __repr__(self):
+    return "%s(name=%r, hp=%r, ac=%r, attacks=%r)" % (
+       self.__class__.__name__, self.name, self.hp, self.ac,      
+       self.attacks)
+
+yaml.load("""
+--- !Monster
+name: Cave spider
+hp: [2,6]    # 2d6
+ac: 16
+attacks: [BITE, HURT]
+""")
+
+Monster(name='Cave spider', hp=[2, 6], ac=16, attacks=['BITE', 'HURT'])
+
+print(
+	yaml.dump(Monster(
+    name='Cave lizard', 
+    hp=[3,6], 
+    ac=16, 
+    attacks=['BITE','HURT']))
+    )
+
+# 输出
+!Monster
+ac: 16
+attacks: [BITE, HURT]
+hp: [3, 6]
+name: Cave lizard

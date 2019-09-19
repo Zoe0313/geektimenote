@@ -1,0 +1,177 @@
+
+为了保留原函数的元信息，我们通常使用内置装饰器@functools.wrap。
+这样就可以将原函数的元信息，拷贝到对应的装饰器函数里）。
+如下：
+
+import functools
+
+def my_decorator(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        print('wrapper of decorator')
+        func(*args, **kwargs)
+    return wrapper
+    
+@my_decorator
+def greet(message):
+    print(message)
+
+执行:
+>>> greet.__name__
+'greet'
+
+
+带自定义参数的装饰器
+def repeat(num):
+    def my_decorator(func):
+        def wrapper(*args, **kwargs):
+            for i in range(num):
+                print('wrapper of decorator')
+                func(*args, **kwargs)
+        return wrapper
+    return my_decorator
+
+@repeat(4)
+def greet(message):
+    print(message)
+
+执行:
+>>> greet('hello world')
+wrapper of decorator
+hello world
+wrapper of decorator
+hello world
+wrapper of decorator
+hello world
+wrapper of decorator
+hello world
+
+
+类装饰器主要依赖于函数__call__()，每当调用一个类的实例时，函数__call__()就会被执行一次。
+例如:
+class Count:
+    def __init__(self, func):
+        self.func = func
+        self.num_calls = 0
+
+    def __call__(self, *args, **kwargs):
+        self.num_calls += 1
+        print('num of calls is: {}'.format(self.num_calls))
+        return self.func(*args, **kwargs)
+
+@Count
+def example():
+    print("hello world")
+
+执行:
+
+>>> example()
+num of calls is: 1
+hello world
+
+>>> example()
+num of calls is: 2
+hello world
+
+嵌套的装饰器是从外向里执行的。
+比如:
+@decorator1
+@decorator2
+@decorator3
+def func():
+    ...
+等价于:
+decorator1(decorator2(decorator3(func)))
+
+装饰器的用法实例:
+
+1. Python内置的@property装饰器可以把类的方法伪装成属性调用的方式。
+class Student(object):
+    def __init__(self, name, score):
+        self.name = name
+        self.__score = score
+    @property
+    def score(self):
+        return self.__score
+    @score.setter
+    def score(self, score):
+        if score < 0 or score > 100:
+            raise ValueError('invalid score')
+        self.__score = score
+
+1. get方法，用@property装饰;
+2. set方法，用@score.setter装饰。
+3. @score.setter是@property装饰后的副产品。
+4. 如果没有定义set方法，就不能对“属性”赋值，score相当于只读“属性”。
+执行：
+
+>>> s = Student('Bob', 59)
+>>> s.score = 60
+>>> print(s.score)
+60
+>>> s.score = 1000
+Traceback (most recent call last): ... ValueError: invalid score
+
+2. 身份认证
+举个例子，浏览网站的信息，不登录也能看，但想要留言或者发布文章，未登录状态下点击发布，服务端会查询你的状态，没有登录的话就不能发布。
+代码示例:
+
+import functools
+
+def authenticate(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        request = args[0]
+        if check_user_logged_in(request): # 如果用户处于登录状态
+            return func(*args, **kwargs) # 执行函数 post_comment() 
+        else:
+            raise Exception('Authentication failed')
+    return wrapper
+    
+@authenticate
+def post_comment(request, ...)
+    ...
+
+3. 测试函数执行时间的装饰器:
+
+import time
+import functools
+
+def log_execution_time(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        res = func(*args, **kwargs)
+        end = time.perf_counter()
+        print('{} took {} ms'.format(func.__name__, (end - start) * 1000))
+        return res
+    return wrapper
+    
+@log_execution_time
+def calculate_similarity(items):
+    ...
+
+ 4. 输入合理性检查
+ 在大型公司的机器学习框架中，我们调用机器集群进行模型训练前，往往会用装饰器对其输入（通常是很长的json文件）进行合理性检查。这样就可以大大避免，输入不正确对机器造成的巨大开销。
+ 代码示例:
+
+import functools
+
+def validation_check(input):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs): 
+        ... # 检查输入是否合法
+    
+@validation_check
+def neural_network_training(param1, param2, ...):
+    ...
+
+5. 缓存装饰器 LRU cache
+LRU cache在Python中的表示形式是@lru_cache
+@lru_cache会缓存进程中的函数参数和结果，
+当缓存满了以后，会删除least recenly used的数据，即最近最不常用的数据。
+代码示例:
+
+@lru_cache
+def check(param1, param2, ...) # 检查用户设备类型，版本号等等
+    ...

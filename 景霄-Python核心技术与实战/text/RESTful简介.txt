@@ -1,0 +1,2 @@
+REST 的实质可以理解为：通过 URL 定位资源，用 GET、POST、PUT、DELETE 等动词来描述操作。
+满足REST要求的接口就被称为RESTful的接口

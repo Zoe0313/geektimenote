@@ -1,0 +1,73 @@
+在实际生产环境中，对代码进行调试和性能分析，是一个永远都逃不开的话题。调试和性能分析的主要场景，通常有这么三个：
+	一是代码本身有问题，需要我们找到根源并修复；
+	二是代码效率有问题，比如过度浪费资源，增加延迟，因此需要我们debug；
+	三是在开发新的feature时，一般都需要测试。
+
+Python的pdb，是其自带的一个调试库。
+它为Python程序提供了交互式的源代码调试功能，是命令行版本的IDE断点调试器。
+
+用法举例：
+a = 1
+b = 2
+# 启动pdb调试：
+import pdb
+pdb.set_trace()
+c = 3
+print(a + b + c)
+
+当我们运行这段程序时，输出界面是这样的：
+> /Users/jingxiao/test.py(5)<module>()
+-> c = 3
+表示程序已运行到pdb.set_trace()，并且暂停下来，等待用户输入。
+这时，我们就可以做一些调试工作，比如打印：
+(pdb) p a
+1
+(pdb) p b
+2
+(pdb) p c
+*** NameError: name 'c' is not defined
+因为程序还没运行到c，所以打印c会抛出异常
+
+n表示继续执行代码到下一行
+(pdb) n
+-> print(a + b + c)
+
+l表示显示出当前代码行上下的11行源代码
+(pdb) l
+  1  	a = 1
+  2  	b = 2
+  3  	import pdb
+  4  	pdb.set_trace()
+  5  ->	c = 3
+  6  	print(a + b + c)
+
+s表示进入对应代码的内部
+进入函数内部显示--Call--
+执行完函数内部语句并跳出后显示--Return--
+
+r表示继续执行直到当前函数完成返回
+
+b用来设置断点
+比如：b 11 表示在代码的第10行加一个断点
+
+c表示一直执行程序直到遇到下一个断点
+
+常用命令官方链接：
+https://docs.python.org/3/library/pdb.html#module-pdb
+
+
+
+cProfile Python的性能分析库
+日常工作中，我们常常会遇到这样的问题：在线上，我发现产品的某个功能模块效率低下，延迟（latency）高，占用的资源多，但却不知道是哪里出了问题。
+这时，对代码进行profile就非常重要了。
+profile是指对代码的每个部分进行动态的分析，比如准确计算出每个模块消耗的时间等。这样你就可以知道程序的瓶颈所在，从而对其进行修正或优化。
+
+cProfile执行后的性能参数：
+	q=ncalls，是指相应代码/函数被调用的次数；
+	tottime，是指对应代码/函数总共执行所需要的时间（注意，并不包括它调用的其他代码/函数的执行时间）；
+	tottime percall，就是上述两者相除的结果，也就是tottime/ncalls；
+	cumtime，则是指对应代码/函数总共执行所需要的时间，这里包括了它调用的其他代码/函数的执行时间；
+	cumtime percall，则是cumtime和ncalls相除的平均结果。
+
+cProfile的官方文档链接：
+https://docs.python.org/3.7/library/profile.html
